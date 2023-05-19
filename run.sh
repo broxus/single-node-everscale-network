@@ -74,7 +74,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z $NODES ]; then
-    NODES=6
+    NODES=5
     echo "WARN: using default node count $NODES"
 fi
 
@@ -135,7 +135,7 @@ cat "$RES_DIR/ton-global.config_2.json" >> "$TEMP_DIR/ton-global.config.json"
 echo "INFO: preparing node configs..."
 
 # 0 is full node
-for (( N=0; N <= $NODES; N++ ))
+for (( N=0; N < $NODES; N++ ))
 do
     echo "INFO: preparing configs for node #$N ..."
 
@@ -155,11 +155,7 @@ do
     ESCAPED_LOG_FILE_PATH=$(printf '%s\n' "$LOG_FILE_PATH" | sed -e 's/[\/&]/\\&/g')
     sed "s/LOG_FILE_PREFIX/$ESCAPED_LOG_FILE_PATH/g" "$RES_DIR/log_cfg.yml" > "$NODE_CONFIGS_DIR/log_cfg.yml"
 
-    if [ $N -ne 0 ]; then
-        DEFAULT_CONFIG=$(cat "$RES_DIR/default_config.json")
-    else
-        DEFAULT_CONFIG=$(cat "$RES_DIR/default_config_fullnode.json")
-    fi
+    DEFAULT_CONFIG=$(cat "$RES_DIR/default_config.json")
 
     DEFAULT_CONFIG=$(echo "$DEFAULT_CONFIG" | sed "s/nodenumber/$N/g")
     DEFAULT_CONFIG=$(echo "$DEFAULT_CONFIG" | sed "s/0.0.0.0/$NOWIP/g")
@@ -186,20 +182,17 @@ do
 
     rm "$NODE_CONFIGS_DIR/default_config.json"
 
-    # 0 is full node
-    if [ $N -ne 0 ]; then
-        echo "      * preparing validator keys"
-        CONSOLE_OUTPUT=$("$TOOLS_TARGET/console" -C "$NODE_CONFIGS_DIR/console.json" -c newkey | cut -c 92-)
+    echo "      * preparing validator keys"
+    CONSOLE_OUTPUT=$("$TOOLS_TARGET/console" -C "$NODE_CONFIGS_DIR/console.json" -c newkey | cut -c 92-)
 
-        "$TOOLS_TARGET/console" -C "$NODE_CONFIGS_DIR/console.json" -c "addpermkey ${CONSOLE_OUTPUT} ${NOWDATE} 1610000000" > /dev/null
+    "$TOOLS_TARGET/console" -C "$NODE_CONFIGS_DIR/console.json" -c "addpermkey ${CONSOLE_OUTPUT} ${NOWDATE} 1610000000" > /dev/null
 
-        CONSOLE_OUTPUT=$("$TOOLS_TARGET/console" -C "$NODE_CONFIGS_DIR/console.json" -c "exportpub ${CONSOLE_OUTPUT}")
-        # echo $CONSOLE_OUTPUT
-        VALIDATOR_PUB_KEY_HEX[$N]=$(echo "${CONSOLE_OUTPUT}" | grep 'imported key:' | awk '{print $3}')
-        # VALIDATOR_PUB_KEY_BASE64[$N]=$(echo "${CONSOLE_OUTPUT}" | grep 'imported key:' | awk '{print $4}')
-        # echo "INFO: VALIDATOR_PUB_KEY_HEX[$N] = ${VALIDATOR_PUB_KEY_HEX[$N]}"
-        # echo "INFO: VALIDATOR_PUB_KEY_BASE64[$N] = ${VALIDATOR_PUB_KEY_BASE64[$N]}"
-    fi
+    CONSOLE_OUTPUT=$("$TOOLS_TARGET/console" -C "$NODE_CONFIGS_DIR/console.json" -c "exportpub ${CONSOLE_OUTPUT}")
+    # echo $CONSOLE_OUTPUT
+    VALIDATOR_PUB_KEY_HEX[$N]=$(echo "${CONSOLE_OUTPUT}" | grep 'imported key:' | awk '{print $3}')
+    # VALIDATOR_PUB_KEY_BASE64[$N]=$(echo "${CONSOLE_OUTPUT}" | grep 'imported key:' | awk '{print $4}')
+    # echo "INFO: VALIDATOR_PUB_KEY_HEX[$N] = ${VALIDATOR_PUB_KEY_HEX[$N]}"
+    # echo "INFO: VALIDATOR_PUB_KEY_BASE64[$N] = ${VALIDATOR_PUB_KEY_BASE64[$N]}"
 
     pkill -9 ton_node &>/dev/null || true
 
@@ -217,15 +210,15 @@ ZEROSTATE=$(echo "$ZEROSTATE" | sed "s/p34_total_weight/$NODES/g")
 ZEROSTATE=$(echo "$ZEROSTATE" | sed "s/p34_total/$NODES/g")
 echo "$ZEROSTATE" > "$TEMP_DIR/zero_state.json"
 
-for (( N=1; N <= $NODES; N++ ))
+for (( N=0; N < $NODES; N++ ))
 do
     echo "      * adding validator #$N"
 
-    printf "{ \"public_key\": \"${VALIDATOR_PUB_KEY_HEX[$N]}\", \"weight\": \"$WEIGHT\"}" >> "$TEMP_DIR/zero_state.json"
-    if [ ! $N -eq $NODES ]
-    then
+    if [ $N -ne 0 ]; then
         printf ",\n" >> "$TEMP_DIR/zero_state.json"
     fi
+
+    printf "{ \"public_key\": \"${VALIDATOR_PUB_KEY_HEX[$N]}\", \"weight\": \"$WEIGHT\"}" >> "$TEMP_DIR/zero_state.json"
 done
 
 cat "$RES_DIR/zero_state_blanc_2.json" >> "$TEMP_DIR/zero_state.json"
@@ -243,22 +236,21 @@ echo "INFO: generating global config..."
 
 cat "$RES_DIR/ton-global.config_1.json" > "$TEMP_DIR/ton-global.config.json"
 
-for (( N=1; N <= $NODES; N++ ))
+for (( N=0; N < $NODES; N++ ))
 do
     echo "      * adding validator #$N"
 
     NODE_CONFIGS_DIR="$TEMP_DIR/node$N"
+
+    if [ $N -ne 0 ]; then
+        echo "," >> "$TEMP_DIR/ton-global.config.json"
+    fi
 
     # DHT key is the first one in config (tag 1)
     KEYTAG=$(grep "pvt_key" "$NODE_CONFIGS_DIR/config.json" | head -n1 | cut -c 23-66)
 
     PORT=$(( 3000 + $N ))
     "$TOOLS_TARGET/gendht" $NOWIP:$PORT $KEYTAG >> "$TEMP_DIR/ton-global.config.json"
-
-    if [ ! $N -eq $NODES ]
-    then
-        echo "," >> "$TEMP_DIR/ton-global.config.json"
-    fi
 done
 
 cat "$RES_DIR/ton-global.config_2.json" >> "$TEMP_DIR/ton-global.config.json"
@@ -271,7 +263,7 @@ echo "INFO: generating global config... done"
 
 echo "INFO: starting nodes..."
 
-for (( N=0; N <= $NODES; N++ ))
+for (( N=0; N < $NODES; N++ ))
 do
     echo "      * starting node #$N"
 
