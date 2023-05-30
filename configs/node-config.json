@@ -1,0 +1,161 @@
+{
+  "log_config_path": "log_cfg.yml",
+  "ton_global_config_name": "ton-global.config.json",
+  "internal_db_path": "node_db",
+  "unsafe_catchain_patches_path": null,
+  "adnl_node": null,
+  "validator_keys": null,
+  "control_server_port": 4042,
+  "control_server": null,
+  "kafka_consumer_config": {
+    "group_id": "101",
+    "brokers": "kafka",
+    "topic": "requests",
+    "session_timeout_ms": 6000,
+    "run_attempt_timeout_ms": 1000
+  },
+  "external_db_config": {
+    "block_producer": {
+      "enabled": true,
+      "brokers": "kafka",
+      "message_timeout_ms": 100,
+      "topic": "blocks",
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 100,
+      "message_max_size": 3000000,
+      "big_messages_storage": "big-blocks",
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "raw_block_producer": {
+      "enabled": false,
+      "brokers": "",
+      "message_timeout_ms": 0,
+      "topic": null,
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 0,
+      "message_max_size": 0,
+      "big_messages_storage": null,
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "message_producer": {
+      "enabled": true,
+      "brokers": "kafka",
+      "message_timeout_ms": 100,
+      "topic": "messages",
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 100,
+      "message_max_size": 3000000,
+      "big_messages_storage": "big-messages",
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "transaction_producer": {
+      "enabled": true,
+      "brokers": "kafka",
+      "message_timeout_ms": 100,
+      "topic": "transactions",
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 100,
+      "message_max_size": 3000000,
+      "big_messages_storage": "big-transactions",
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "account_producer": {
+      "enabled": true,
+      "brokers": "kafka",
+      "message_timeout_ms": 100,
+      "topic": "accounts",
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 100,
+      "message_max_size": 3000000,
+      "big_messages_storage": "big-accounts",
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "block_proof_producer": {
+      "enabled": true,
+      "brokers": "kafka",
+      "message_timeout_ms": 100,
+      "topic": "blocks_signatures",
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 100,
+      "message_max_size": 3000000,
+      "big_messages_storage": "big-block-proofs",
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "chain_range_producer": {
+      "enabled": false,
+      "brokers": "",
+      "message_timeout_ms": 0,
+      "topic": null,
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 0,
+      "message_max_size": 0,
+      "big_messages_storage": null,
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "remp_statuses_producer": {
+      "enabled": false,
+      "brokers": "",
+      "message_timeout_ms": 0,
+      "topic": null,
+      "sharded_topics": null,
+      "sharding_depth": 0,
+      "attempt_timeout_ms": 0,
+      "message_max_size": 0,
+      "big_messages_storage": null,
+      "big_message_max_size": null,
+      "external_message_ref_address_prefix": null
+    },
+    "bad_blocks_storage": "bad-blocks"
+  },
+  "default_rldp_roundtrip_ms": null,
+  "test_bundles_config": {
+    "collator": {
+      "build_for_unknown_errors": false,
+      "known_errors": [],
+      "build_for_errors": false,
+      "errors": [],
+      "path": ""
+    },
+    "validator": {
+      "build_for_unknown_errors": false,
+      "known_errors": [],
+      "build_for_errors": false,
+      "errors": [],
+      "path": ""
+    }
+  },
+  "connectivity_check_config": {
+    "enabled": true,
+    "long_len": 2048,
+    "short_period_ms": 1000,
+    "long_mult": 5
+  },
+  "gc": null,
+  "validator_key_ring": null,
+  "remp": {
+    "client_enabled": false,
+    "remp_client_pool": null,
+    "service_enabled": true
+  },
+  "restore_db": false,
+  "low_memory_mode": false,
+  "cells_db_config": {
+    "states_db_queue_len": 1000,
+    "max_pss_slowdown_mcs": 750,
+    "prefill_cells_cunters": false
+  }
+}

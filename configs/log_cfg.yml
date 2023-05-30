@@ -17,7 +17,7 @@ appenders:
     kind: rolling_file
     encoder:
       pattern: "{d(%Y-%m-%d %H:%M:%S.%f)} {l} [{h({t})}] {I}: {m}{n}"
-    path: 'LOG_FILE_PREFIX.log'
+    path: '{LOG_FILE_PATH}/output_{NODE_NUM}_1.log'
     policy:
       kind: compound
       trigger:
@@ -25,7 +25,7 @@ appenders:
         limit: 5 gb
       roller:
         kind: fixed_window
-        pattern: 'LOG_FILE_PREFIX_{}.log'
+        pattern: '{LOG_FILE_PATH}/output_{NODE_NUM}_1_{}.log'
         base: 1
         count: 10
 
