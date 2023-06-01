@@ -219,20 +219,19 @@
     "type": "generate",
     "node_config": "./configs/node-config.json",
     "log_template": "./configs/log_cfg.yml",
-    "nodes":
-    [
-      {
+    "nodes": {
+      "node_first": {
         "adnl_addr": "127.0.0.1",
         "adnl_port": 4000
       },
-      {
+      "node_second": {
         "adnl_addr": "127.0.0.1",
         "adnl_port": 4001
       },
-      {
+      "node_third": {
         "adnl_addr": "127.0.0.1",
         "adnl_port": 4002
       }
-    ]
+    }
   }
 }

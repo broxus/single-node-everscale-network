@@ -120,16 +120,14 @@ echo -e "INFO: build nodes configs using betterscale"
 
 "$bstools_target/betterscale" -- zerostate --config "$configs" --output "$output"
 
-nodes=$(ls -d $output/node* | wc -l)
+echo -e "INFO: starting nodes..."
 
-echo -e "INFO: starting nodes...\nNODES=$nodes"
-
-for ((n = 0; n <= $((nodes - 1)); n++)); do
-  echo "      * starting node #$n"
-  node_configs_dir="$output/node$n"
+for node_configs_dir in "$output"/nodes/*/; do
+  node=$(basename "$node_configs_dir")
+  echo "      * starting node $node"
   pushd "$node_configs_dir" >/dev/null
   cp config.json default-config.json
-  "$node_target/ton_node" --configs ./ -z "$output_dir/zerostate" >>"${logs_dir}/node_$n.output" 2>&1 &
+  "$node_target/ton_node" --configs ./ -z "$output_dir/zerostate" >>"${logs_dir}/node_${node}.output" 2>&1 &
   rm default-config.json
   popd >/dev/null
 done

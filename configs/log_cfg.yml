@@ -17,7 +17,7 @@ appenders:
     kind: rolling_file
     encoder:
       pattern: "{d(%Y-%m-%d %H:%M:%S.%f)} {l} [{h({t})}] {I}: {m}{n}"
-    path: '{LOG_FILE_PATH}/output_{NODE_NUM}_1.log'
+    path: '/var/log/local-ever-network/nodes/{NODE_NAME}/output.log'
     policy:
       kind: compound
       trigger:
@@ -25,7 +25,7 @@ appenders:
         limit: 5 gb
       roller:
         kind: fixed_window
-        pattern: '{LOG_FILE_PATH}/output_{NODE_NUM}_1_{}.log'
+        pattern: '/var/log/local-ever-network/nodes/{NODE_NAME}/output_{}.log'
         base: 1
         count: 10
 
