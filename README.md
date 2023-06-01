@@ -15,7 +15,6 @@ Options:
   --betterscale-tools-path PATH           Path to the betterscale-tools repo
   --zerostate PATH                        Path to zerostate config
   --rebuild-node                          Build node repo before running the network
-  --rebuild-betterscale-tools             Build betterscale-tools before running the network
   --output PATH                           Output directory with nodes
 ```
 

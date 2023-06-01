@@ -12,7 +12,6 @@ Options:
   --betterscale-tools-path PATH           Path to the betterscale-tools repo
   --zerostate PATH                        Path to zerostate config
   --rebuild-node                          Build node repo before running the network
-  --rebuild-betterscale-tools             Build betterscale-tools before running the network
   --output PATH                           Output directory with nodes
 '
 
@@ -79,10 +78,6 @@ while [[ $# -gt 0 ]]; do
     rebuild_node=true
     shift
     ;;
-  --rebuild-betterscale-tools)
-    rebuild_bstool=true
-    shift
-    ;;
   *) # unknown option
     echo -e "ERROR: Unknown option $1 \n"
     print_help
@@ -106,13 +101,6 @@ if [[ -n $rebuild_node ]]; then
   echo "INFO: rebuilding node"
   pushd "$node_root" >/dev/null
   cargo build --release --features "telemetry"
-  popd >/dev/null
-fi
-
-if [[ -n $rebuild_bstool ]]; then
-  echo "INFO: rebuilding betterscale-tools"
-  pushd "$bstools_root" >/dev/null
-  cargo build --release
   popd >/dev/null
 fi
 
