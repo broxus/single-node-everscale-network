@@ -7,6 +7,9 @@
   "validator_keys": null,
   "control_server_port": 4042,
   "control_server": null,
+  "boot_config": {
+    "skip_downloading_key_blocks": true
+  },
   "kafka_consumer_config": {
     "group_id": "101",
     "brokers": "kafka",
@@ -149,7 +152,7 @@
   "remp": {
     "client_enabled": false,
     "remp_client_pool": null,
-    "service_enabled": true
+    "service_enabled": false
   },
   "restore_db": false,
   "low_memory_mode": false,

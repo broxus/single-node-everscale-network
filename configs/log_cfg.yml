@@ -37,11 +37,11 @@ root:
 loggers:
   # node messages
   ton_node:
-    level: trace
+    level: info
   boot:
-    level: trace
+    level: info
   sync:
-    level: trace
+    level: info
 
   # adnl messages
   adnl:
@@ -77,19 +77,19 @@ loggers:
     level: info
 
   validator_manager:
-    level: trace
+    level: info
 
   remp:
-    level: trace
+    level: info
 
   catchain:
-    level: debug
+    level: info
 
   validator_session:
-    level: debug
+    level: info
 
   storage:
-    level: trace
+    level: info
 
   telemetry:
-    level: debug
+    level: info
