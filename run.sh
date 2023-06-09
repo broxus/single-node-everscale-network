@@ -116,8 +116,18 @@ output_dir="$script_dir/$output"
 mkdir -p "$output_dir"
 mkdir -p "$logs_dir"
 
-echo -e "INFO: build nodes configs using betterscale"
+# Update gen utime
+gen_utime=$(date +%s)
+jq --argjson arg "${gen_utime}" '.gen_utime = $arg' $configs | sponge $configs
 
+# Update ip address
+ip_address=$(hostname -i)
+sed -i -r 's/(\b[0-9]{1,3}\.){3}[0-9]{1,3}\b'/"$ip_address"/  $configs
+
+echo -e "INFO: Waiting for a little time since gen utime should not match service start time"
+sleep 1
+
+echo -e "INFO: build nodes configs using betterscale"
 "$bstools_target/betterscale" -- zerostate --config "$configs" --output "$output"
 
 echo -e "INFO: starting nodes..."
