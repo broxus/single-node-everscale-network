@@ -128,6 +128,7 @@ echo -e "INFO: Waiting for a little time since gen utime should not match servic
 sleep 1
 
 echo -e "INFO: build nodes configs using betterscale"
+echo -e "INFO: $output"
 "$bstools_target/betterscale" -- zerostate --config "$configs" --output "$output"
 
 echo -e "INFO: starting nodes..."
