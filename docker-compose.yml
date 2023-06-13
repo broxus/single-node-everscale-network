@@ -1,0 +1,35 @@
+services:
+  ever-node:
+    image: ever-node
+    build:
+      context: .
+      dockerfile: ./ever-node/Dockerfile
+    expose:
+      - 30000
+    networks:
+      - my-network
+    entrypoint: ./run.sh
+    command: --node-path ../ever-node --betterscale-tools-path ../betterscale-tools --configs configs/zerostate-config.json --output temp
+    volumes:
+      - shared-data:/var/everscale/local-ever-network/temp
+  jrpc-api:
+    image: jrpc-api
+    build:
+      context: .
+      dockerfile: ./jrpc-api/Dockerfile
+    expose:
+      - 30000
+    networks:
+      - my-network
+    entrypoint: ton-kafka-producer
+    command: --config /etc/ton-kafka-producer/config.yaml --global-config /var/everscale/ton-global.config.json
+    volumes:
+      - shared-data:/var/everscale
+    ports:
+      - 8081:8081
+    restart: always
+volumes:
+  shared-data:
+networks:
+  my-network:
+    driver: bridge
