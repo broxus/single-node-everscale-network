@@ -7,19 +7,22 @@ RUN git clone --single-branch --branch feature/full-jrpc-api https://github.com/
     && cd ton-kafka-producer \
     && RUSTFLAGS='-C target-cpu=native' cargo build --release
 
-ADD jrpc-api/configs configs
+ADD jrpc-api jrpc-api
 
 FROM debian:sid-slim as runtime
 
-RUN apt-get update &&  apt-get install -y --no-install-recommends openssl ca-certificates libsasl2-2 netcat-traditional curl \
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates libsasl2-2 wget \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/
 
-COPY --from=builder configs/config.yaml /etc/ton-kafka-producer/config.yaml
-COPY --from=builder configs/ton-global.config.json /etc/ton-kafka-producer/ton-global.config.json
+
+RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && \
+    chmod a+x /usr/local/bin/yq
+
+COPY --from=builder jrpc-api /var/everscale/jrpc-api
 COPY --from=builder ton-kafka-producer/target/release/ton-kafka-producer /usr/local/bin/ton-kafka-producer
 
-EXPOSE 30000
+WORKDIR /var/everscale/jrpc-api
 
-ENTRYPOINT ["ton-kafka-producer"]
+ENTRYPOINT ["./run.sh"]

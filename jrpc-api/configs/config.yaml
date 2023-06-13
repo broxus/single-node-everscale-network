@@ -5,36 +5,24 @@ rpc_config:
     type: full
     generate_stub_keyblock: true
     persistent_db_path: "/var/db/ton-kafka-producer/rpc_storage"
-
 metrics_settings:
   # Listen address of metrics. Used by the client to gather prometheus metrics.
   # Default: "127.0.0.1:10000"
   listen_address: "0.0.0.0:10000"
   # Metrics update interval in seconds. Default: 10
   collection_interval_sec: 10
-
 scan_type:
   kind: FromNetwork
   node_config:
-    # Root directory for node DB. Default: "./db"
-    db_path: "/var/db/ton-kafka-producer"
-      #db_options:
-      #rocksdb_lru_capacity: "512 MB"
-      #rocksdb_compaction_memory_budget: "1 GB"
-    #cells_cache_size: "1 GB"
+    # Node public ip. Default: automatically determines
+    adnl_public_ip: "127.0.0.1"
     # UDP port, used for ADNL node. Default: 30303
     adnl_port: 30000
-
+    # Root directory for node DB. Default: "./db"
+    db_path: "/var/db/ton-kafka-producer"
     # Path to temporary ADNL keys.
     # NOTE: Will be generated if it was not there.
     # Default: "./adnl-keys.json"
-    temp_keys_path: "/etc/ton-kafka-producer/adnl-keys.json"
-
+    temp_keys_path: "/var/everscale/adnl-keys.json"
     # Archives map queue. Default: 16
     parallel_archive_downloads: 32
-
-    # # Specific block from which to run the indexer
-    # start_from: 12365000
-
-    # # Allowed DB size in bytes. Default: one third of all machine RAM
-    # max_db_memory_usage: 3000000000
