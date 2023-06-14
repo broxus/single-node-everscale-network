@@ -1,11 +1,15 @@
 FROM rust:latest AS builder
 
+ARG TARGET
+
 RUN apt-get update \
     && apt-get install -y libclang-dev cmake libsasl2-dev clang
 
-RUN git clone --single-branch --branch feature/full-jrpc-api https://github.com/broxus/ton-kafka-producer.git \
-    && cd ton-kafka-producer \
-    && RUSTFLAGS='-C target-cpu=native' cargo build --release
+RUN git clone --single-branch --branch feature/full-jrpc-api https://github.com/broxus/ton-kafka-producer.git && \
+    if [ "$TARGET" = "Venom" ] ; \
+    then cd ton-kafka-producer && RUSTFLAGS='-C target-cpu=native' cargo build --release --features venom ; \
+    else cd ton-kafka-producer && RUSTFLAGS='-C target-cpu=native' cargo build --release ; \
+    fi
 
 ADD jrpc-api jrpc-api
 

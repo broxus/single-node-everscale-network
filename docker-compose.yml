@@ -17,6 +17,8 @@ services:
     build:
       context: .
       dockerfile: ./jrpc-api/Dockerfile
+      args:
+        TARGET: ${TARGET}
     expose:
       - 30000
     entrypoint: ./run.sh
