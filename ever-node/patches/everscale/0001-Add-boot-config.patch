@@ -1,0 +1,197 @@
+From 4feb33725c5b13dfda1dfd02f8c39850a03221ca Mon Sep 17 00:00:00 2001
+From: Alexey Pashinov <pashinov93@gmail.com>
+Date: Thu, 8 Jun 2023 14:08:01 +0200
+Subject: [PATCH 1/1] Add boot config
+
+`skip_downloading_key_blocks` option allows running a local network consisting of one node.
+---
+ src/boot.rs   | 61 ++++++++++++++++++++++++++++-----------------------
+ src/config.rs | 11 ++++++++++
+ src/engine.rs |  7 ++++--
+ 3 files changed, 49 insertions(+), 30 deletions(-)
+
+diff --git a/src/boot.rs b/src/boot.rs
+index ae747d0..1ebd60b 100644
+--- a/src/boot.rs
++++ b/src/boot.rs
+@@ -13,7 +13,7 @@
+ 
+ use crate::{
+     CHECK, block::BlockStuff, block_proof::BlockProofStuff, engine_traits::EngineOperations, 
+-    shard_state::ShardStateStuff, engine::Engine
++    shard_state::ShardStateStuff, engine::Engine, config::BootConfig
+ };
+ use ever_crypto::KeyId;
+ use std::{ops::Deref, sync::Arc, time::Duration};
+@@ -99,6 +99,7 @@ async fn run_cold(
+ /// 4. check if last key block can be selected for current state
+ async fn get_key_blocks(
+     engine: &dyn EngineOperations,
++    boot_config: &BootConfig,
+     mut handle: Arc<BlockHandle>,
+     zero_state: Option<&Arc<ShardStateStuff>>,
+     mut prev_block_proof: Option<BlockProofStuff>,
+@@ -109,33 +110,37 @@ async fn get_key_blocks(
+         if engine.check_stop() {
+             fail!("Boot was stopped");
+         }
+-        log::info!(target: "boot", "download_next_key_blocks_ids {}", handle.id());
+-        let (ids, _incomplete) = match engine.download_next_key_blocks_ids(handle.id(), 10).await {
+-            Err(err) => {
+-                log::warn!(target: "boot", "download_next_key_blocks_ids {}: {}", handle.id(), err);
+-                futures_timer::Delay::new(Duration::from_secs(1)).await;
+-                continue
+-            }
+-            Ok(result) => result
+-        };
+-        if let Some(block_id) = ids.last() {
+-            log::info!(target: "boot", "last key block is {}", block_id);
+-            download_new_key_blocks_until = engine.now() + engine.time_for_blockchain_init();
+-            for block_id in &ids {
+-                //let prev_time = handle.gen_utime()?;
+-                let (next_handle, proof) = download_key_block_proof(
+-                    engine, block_id, zero_state, prev_block_proof.as_ref()
+-                ).await?;
+-                handle = next_handle;
+-                CHECK!(handle.is_key_block()?);
+-                CHECK!(handle.gen_utime()? != 0);
+-                // if engine.is_persistent_state(handle.gen_utime()?, prev_time) {
+-                //     engine.set_init_mc_block_id(block_id);
+-                // }
+-                key_blocks.push(handle.clone());
+-                prev_block_proof = Some(proof);
++
++        if !boot_config.skip_downloading_key_blocks {
++            log::info!(target: "boot", "download_next_key_blocks_ids {}", handle.id());
++            let (ids, _incomplete) = match engine.download_next_key_blocks_ids(handle.id(), 10).await {
++                Err(err) => {
++                    log::warn!(target: "boot", "download_next_key_blocks_ids {}: {}", handle.id(), err);
++                    futures_timer::Delay::new(Duration::from_secs(1)).await;
++                    continue
++                }
++                Ok(result) => result
++            };
++            if let Some(block_id) = ids.last() {
++                log::info!(target: "boot", "last key block is {}", block_id);
++                download_new_key_blocks_until = engine.now() + engine.time_for_blockchain_init();
++                for block_id in &ids {
++                    //let prev_time = handle.gen_utime()?;
++                    let (next_handle, proof) = download_key_block_proof(
++                        engine, block_id, zero_state, prev_block_proof.as_ref()
++                    ).await?;
++                    handle = next_handle;
++                    CHECK!(handle.is_key_block()?);
++                    CHECK!(handle.gen_utime()? != 0);
++                    // if engine.is_persistent_state(handle.gen_utime()?, prev_time) {
++                    //     engine.set_init_mc_block_id(block_id);
++                    // }
++                    key_blocks.push(handle.clone());
++                    prev_block_proof = Some(proof);
++                }
+             }
+         }
++
+         if let Some(handle) = key_blocks.last() {
+             let utime = handle.gen_utime()?;
+             log::info!(target: "boot", "id: {}, utime: {}, now: {}", handle.id(), utime, engine.now());
+@@ -346,13 +351,13 @@ async fn download_block_and_state(
+ 
+ /// Cold load best key block and its state
+ /// Must be used only zero_state or key_block id
+-pub async fn cold_boot(engine: Arc<dyn EngineOperations>) -> Result<BlockIdExt> {
++pub async fn cold_boot(engine: Arc<dyn EngineOperations>, boot_config: &BootConfig) -> Result<BlockIdExt> {
+     // TODO: rewrite hard forks from opts to DB
+     // engine.get_hardforks();
+     // engine.update_hardforks();
+     let (mut handle, zero_state, init_block_proof_link) = run_cold(engine.deref()).await?;
+     let key_blocks = get_key_blocks(
+-        engine.deref(), handle, zero_state.as_ref(), init_block_proof_link
++        engine.deref(), boot_config, handle, zero_state.as_ref(), init_block_proof_link
+     ).await?;
+     
+     handle = choose_masterchain_state(engine.deref(), key_blocks.clone(), PSS_PERIOD_BITS).await?;
+diff --git a/src/config.rs b/src/config.rs
+index 2ff14a1..c4f6536 100644
+--- a/src/config.rs
++++ b/src/config.rs
+@@ -106,6 +106,12 @@ impl Default for CollatorConfig {
+     }
+ }
+ 
++#[derive(serde::Deserialize, serde::Serialize, Clone, Debug, Default)]
++#[serde(default)]
++pub struct BootConfig {
++    pub skip_downloading_key_blocks: bool,
++}
++
+ #[derive(serde::Deserialize, serde::Serialize)]
+ pub struct TonNodeConfig {
+     log_config_name: Option<String>,
+@@ -150,6 +156,8 @@ pub struct TonNodeConfig {
+     cells_db_config: CellsDbConfig,
+     #[serde(default)]
+     collator_config: CollatorConfig,
++    #[serde(default)]
++    boot_config: BootConfig,
+ }
+ 
+ pub struct TonNodeGlobalConfig(TonNodeGlobalConfigJson);
+@@ -553,6 +561,9 @@ impl TonNodeConfig {
+     pub fn cells_db_config(&self) -> &CellsDbConfig {
+         &self.cells_db_config
+     }
++    pub fn boot_config(&self) -> &BootConfig {
++        &self.boot_config
++    }
+ 
+     pub fn collator_config(&self) -> &CollatorConfig {
+         &self.collator_config
+diff --git a/src/engine.rs b/src/engine.rs
+index 3de0cbb..3a604a6 100644
+--- a/src/engine.rs
++++ b/src/engine.rs
+@@ -16,7 +16,7 @@ use crate::{
+     block_proof::BlockProofStuff,
+     config::{
+         TonNodeConfig, KafkaConsumerConfig, CollatorTestBundlesGeneralConfig, 
+-        ValidatorManagerConfig, CollatorConfig
++        ValidatorManagerConfig, CollatorConfig, BootConfig
+     },
+     engine_traits::{
+         ExternalDb, EngineAlloc, EngineOperations,
+@@ -131,6 +131,7 @@ pub struct Engine {
+ 
+     test_bundles_config: CollatorTestBundlesGeneralConfig,
+     collator_config: CollatorConfig,
++    boot_config: BootConfig,
+  
+     shard_states_keeper: Arc<ShardStatesKeeper>,
+     #[cfg(feature="workchains")]
+@@ -567,6 +568,7 @@ impl Engine {
+         let global_config = general_config.load_global_config()?;
+         let test_bundles_config = general_config.test_bundles_config().clone();
+         let collator_config = general_config.collator_config().clone();
++        let boot_config = general_config.boot_config().clone();
+         let low_memory_mode = general_config.low_memory_mode();
+ 
+         let network = NodeNetwork::new(
+@@ -733,6 +735,7 @@ impl Engine {
+             remp_capability: AtomicBool::new(false),
+             test_bundles_config,
+             collator_config,
++            boot_config,
+             shard_states_keeper: shard_states_keeper.clone(),
+             #[cfg(feature="workchains")]
+             workchain_id: AtomicI32::new(workchain_id),
+@@ -1987,7 +1990,7 @@ async fn boot(engine: &Arc<Engine>, zerostate_path: Option<&str>)
+             log::debug!("before cold boot: {}", err);
+ 
+             engine.acquire_stop(Engine::MASK_SERVICE_BOOT);
+-            let id = boot::cold_boot(engine.clone()).await;
++            let id = boot::cold_boot(engine.clone(), &engine.boot_config).await;
+             engine.release_stop(Engine::MASK_SERVICE_BOOT);
+             let id = id?;
+             engine.save_last_applied_mc_block_id(&id)?;
+-- 
+2.40.1
+

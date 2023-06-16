@@ -12,34 +12,34 @@ services:
     command: --node-path ../ever-node --betterscale-tools-path ../betterscale-tools --configs configs/zerostate-config.json --output temp
     volumes:
       - shared-data:/var/everscale/local-ever-network/temp
-  jrpc-api:
-    image: jrpc-api
-    build:
-      context: .
-      dockerfile: ./jrpc-api/Dockerfile
-      args:
-        TARGET: ${TARGET}
-    expose:
-      - 8081
-      - 30000
-    entrypoint: ./run.sh
-    command: --config configs/config.yaml --global-config ../shared/ton-global.config.json
-    volumes:
-      - shared-data:/var/everscale/shared
-    ports:
-      - 8081:8081
-      - 10000:10000
-    healthcheck:
-      test: curl --fail http://localhost:8081/rpc || exit 1
-      interval: 30s
-      retries: 10
-      start_period: 60s
-      timeout: 10s
-  giver:
-    image: giver
-    build:
-      context: .
-      dockerfile: ./giver/Dockerfile
-    command: python3 -m giver -a ${GIVER_AMOUNT} -r ${GIVER_RECIPIENT}
+#  jrpc-api:
+#    image: jrpc-api
+#    build:
+#      context: .
+#      dockerfile: ./jrpc-api/Dockerfile
+#      args:
+#        TARGET: ${TARGET}
+#    expose:
+#      - 8081
+#      - 30000
+#    entrypoint: ./run.sh
+#    command: --config configs/config.yaml --global-config ../shared/ton-global.config.json
+#    volumes:
+#      - shared-data:/var/everscale/shared
+#    ports:
+#      - 8081:8081
+#      - 10000:10000
+#    healthcheck:
+#      test: curl --fail http://localhost:8081/rpc || exit 1
+#      interval: 30s
+#      retries: 10
+#      start_period: 60s
+#      timeout: 10s
+#  giver:
+#    image: giver
+#    build:
+#      context: .
+#      dockerfile: ./giver/Dockerfile
+#    command: python3 -m giver -a ${GIVER_AMOUNT} -r ${GIVER_RECIPIENT}
 volumes:
   shared-data:

@@ -5,18 +5,20 @@ ARG TARGET
 RUN apt-get update \
   && apt-get -y install pkg-config openssl clang-13 libzstd-dev libgoogle-perftools-dev
 
+ADD ever-node local-ever-network
+
 RUN git clone --single-branch --branch feature/full-config https://github.com/broxus/betterscale-tools.git \
     && cd betterscale-tools \
     && RUSTFLAGS='-C target-cpu=native' cargo build --release
 
 RUN if [ "$TARGET" = "Venom" ] ; \
-    then git clone --recursive --single-branch --branch feature/boot-config https://github.com/tonlabs/ever-node-venom.git ever-node && \
-    cd ever-node && RUSTFLAGS='-C target-cpu=native' cargo build --release --features venom ; \
-    else git clone --recursive --single-branch --branch feature/boot-config https://github.com/pashinov/ever-node.git && \
-    cd ever-node && RUSTFLAGS='-C target-cpu=native' cargo build --release ; \
+    then git clone --recursive --single-branch --branch master https://github.com/tonlabs/ever-node-venom.git ever-node && \
+      cd ever-node && git apply ../local-ever-network/patches/venom/0001-Add-boot-config.patch && \
+      RUSTFLAGS='-C target-cpu=native' cargo build --release --features venom ; \
+    else git clone --recursive --single-branch --branch master https://github.com/tonlabs/ever-node.git && \
+      cd ever-node && git apply ../local-ever-network/patches/everscale/0001-Add-boot-config.patch && \
+      RUSTFLAGS='-C target-cpu=native' cargo build --release ; \
     fi
-
-ADD ever-node local-ever-network
 
 FROM debian:bullseye-slim as runtime
 
