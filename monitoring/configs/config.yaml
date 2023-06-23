@@ -1,0 +1,28 @@
+---
+node_settings:
+  # Node public ip. Default: automatically determines
+  adnl_public_ip: "127.0.0.1"
+  # UDP port, used for ADNL node. Default: 30303
+  adnl_port: 30000
+  # Root directory for node DB. Default: "./db"
+  db_path: "/var/db/everscale-monitoring"
+  # Path to temporary ADNL keys.
+  # NOTE: Will be generated if it was not there.
+  # Default: "./adnl-keys.json"
+  temp_keys_path: "/var/everscale/adnl-keys.json"
+
+  # Manual rocksdb memory options (will be computed from the
+  # available memory otherwise).
+  # db_options:
+  #   rocksdb_lru_capacity: "512 MB"
+  #   cells_cache_size: "4 GB"
+
+metrics_settings:
+  # Listen address of metrics. Used by the client to gather prometheus metrics.
+  # Default: "127.0.0.1:10000"
+  listen_address: "0.0.0.0:10000"
+  # URL path to the metrics. Default: "/"
+  # Example: `curl http://127.0.0.1:10000/metrics`
+  metrics_path: "/metrics"
+  # Metrics update interval in seconds. Default: 10
+  collection_interval_sec: 10

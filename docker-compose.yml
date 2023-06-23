@@ -35,6 +35,21 @@ services:
       retries: 10
       start_period: 60s
       timeout: 10s
+  monitoring:
+    image: monitoring
+    build:
+      context: .
+      dockerfile: ./monitoring/Dockerfile
+      args:
+        TARGET: ${TARGET}
+    expose:
+      - 30000
+    entrypoint: ./run.sh
+    command: --config configs/config.yaml --global-config ../shared/ton-global.config.json
+    volumes:
+      - shared-data:/var/everscale/shared
+    ports:
+      - 10001:10000
   giver:
     image: giver
     build:

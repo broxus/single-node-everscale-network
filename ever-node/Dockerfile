@@ -11,13 +11,11 @@ RUN git clone --single-branch --branch feature/full-config https://github.com/br
     && cd betterscale-tools \
     && RUSTFLAGS='-C target-cpu=native' cargo build --release
 
-RUN if [ "$TARGET" = "Venom" ] ; \
-    then git clone --recursive --single-branch --branch master https://github.com/tonlabs/ever-node-venom.git ever-node && \
-      cd ever-node && git apply ../local-ever-network/patches/venom/0001-Add-boot-config.patch && \
-      RUSTFLAGS='-C target-cpu=native' cargo build --release --features venom ; \
-    else git clone --recursive --single-branch --branch master https://github.com/tonlabs/ever-node.git && \
+RUN if [ "$TARGET" = "Everscale" ] ; \
+    then git clone --recursive --single-branch --branch master https://github.com/tonlabs/ever-node.git && \
       cd ever-node && git apply ../local-ever-network/patches/everscale/0001-Add-boot-config.patch && \
       RUSTFLAGS='-C target-cpu=native' cargo build --release ; \
+    else exit 0 ; \
     fi
 
 FROM debian:bullseye-slim as runtime
